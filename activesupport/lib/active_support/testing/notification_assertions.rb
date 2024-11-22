@@ -13,13 +13,17 @@ module ActiveSupport
       #       post.submit(title: "Cool Post") # => emits matching notification
       #     end
       #
-      def assert_notification(pattern, payload = nil, &block)
+      def assert_notification(pattern, payload = nil, payload_subset: false, &block)
         notifications = capture_notifications(pattern, &block)
         assert_not_empty(notifications, "No #{pattern} notifications were found")
 
         return if payload.nil?
 
-        notification = notifications.find { |notification| notification.payload == payload }
+        notification = if payload_subset
+          notifications.find { |notification| notification.payload.slice(*payload.keys) == payload }
+        else
+          notifications.find { |notification| notification.payload == payload }
+        end
         assert_not_nil(notification, "No #{pattern} notification with payload #{payload} was found")
       end
 
