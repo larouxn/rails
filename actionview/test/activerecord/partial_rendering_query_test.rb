@@ -20,9 +20,12 @@ class PartialRenderingQueryTest < ActiveRecordTestCase
   end
 
   def test_render_with_relation_collection
-    @view.render partial: "topics/topic", collection: Topic.all
+    filter = Proc.new { %w[ SCHEMA TRANSACTION ].exclude?(_1.payload[:name]) }
+    notifications = capture_notifications("sql.active_record", filter) do
+      @view.render partial: "topics/topic", collection: Topic.all
+    end
 
-    assert_equal 1, @queries.size
-    assert_equal 'SELECT "topics".* FROM "topics"', @queries[0]
+    assert_equal 1, notifications.size
+    assert_equal 'SELECT "topics".* FROM "topics"', notifications.first.payload[:sql]
   end
 end
