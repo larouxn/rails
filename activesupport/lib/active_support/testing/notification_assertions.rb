@@ -13,8 +13,8 @@ module ActiveSupport
       #       post.submit(title: "Cool Post") # => emits matching notification
       #     end
       #
-      def assert_notification(pattern, payload = nil, &block)
-        notifications = capture_notifications(pattern, &block)
+      def assert_notification(pattern, payload = nil, filter = nil, &block)
+        notifications = capture_notifications(pattern, filter, &block)
         assert_not_empty(notifications, "No #{pattern} notifications were found")
 
         return if payload.nil?
@@ -68,10 +68,10 @@ module ActiveSupport
       #       post.submit(title: "Cool Post") # => emits matching notification
       #     end
       #
-      def capture_notifications(pattern = nil, &block)
+      def capture_notifications(pattern = nil, filter = nil, &block)
         notifications = []
         ActiveSupport::Notifications.subscribed(->(n) { notifications << n }, pattern, &block)
-        notifications
+        filter ? notifications.select(&filter) : notifications
       end
     end
   end
